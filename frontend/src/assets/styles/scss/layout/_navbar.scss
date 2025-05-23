@@ -18,6 +18,10 @@
     color: #000;
   }
 
+  img {
+      height: '50px';
+    }
+
   &__links {
     display: flex;
     gap: 2.7rem;
@@ -38,3 +42,49 @@
     }
   }
 }
+
+.navbar__links {
+  display: flex;
+  align-items: center; // ✅ Ensures vertical alignment
+  gap: 2.7rem;
+  font-size: 1.1rem;
+  list-style: none;
+  margin: 0;
+  padding: 0;
+
+  li {
+    display: flex;
+    align-items: center;
+
+    a {
+      font-weight: 500;
+      transition: color 0.3s ease;
+
+      &:hover {
+        color: #1abc9c;
+      }
+
+      &.active {
+        color: #278f7a;
+      }
+    }
+
+    .logout-btn {
+      background-color: black;
+      color: white;
+      border: none;
+      padding: 6px 20px;
+      border-radius: 50px;
+      font-size: 16px;
+      font-weight: 500;
+      cursor: pointer;
+      transition: background-color 0.3s ease;
+
+      &:hover {
+        background-color: #278f7a;
+      }
+    }
+  }
+}
+
+

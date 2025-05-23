@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
+import ClipLoader from "react-spinners/ClipLoader";
 
 // Unsplash Access Key
 const UNSPLASH_ACCESS_KEY = 'ZjJbjMdMJ7IyEH-Ou4zW4Ub1x_3iZKdl7jkK2Cp3ZKw';
@@ -10,6 +11,7 @@ const CourseDetailsPage = () => {
   const [course, setCourse] = useState(null); // Store the course data
   const [imageUrl, setImageUrl] = useState(null); // Store the fetched image URL
   const navigate = useNavigate(); // For navigation
+  const [loading, setLoading] = useState(true);
 
   // Fetch course data from backend API
   useEffect(() => {
@@ -20,13 +22,11 @@ const CourseDetailsPage = () => {
 
     const fetchCourseData = async () => {
       try {
-        const token = localStorage.getItem('token'); // Get token from localStorage
-
-        const res = await fetch(`/api/courses/${name}/`, {
+        const res = await fetch(`https://srabonbackend3.onrender.com/api/courses/${name}/`, {
           method: 'GET',
           headers: {
             'Content-Type': 'application/json',
-            'Authorization': `Bearer ${token}`,
+            'Authorization': `Bearer ${localStorage.getItem('token')}`,
           },
         });
 
@@ -59,15 +59,13 @@ const CourseDetailsPage = () => {
       } catch (err) {
         console.error('Error fetching image from Unsplash:', err);
         setImageUrl('https://via.placeholder.com/300x180?text=Error');
+      } finally {
+        setLoading(false);
       }
     };
 
     fetchCourseData(); // Call the function to fetch course data
   }, [name]); // Trigger when 'name' changes
-
-  if (!course) {
-    return <div className="loading">Loading course...</div>;
-  }
 
   const handleEnrollNow = () => {
     // Navigate to CourseArticlePage with course data
@@ -76,28 +74,41 @@ const CourseDetailsPage = () => {
     console.log(course);
   };
 
+  const handleAllCourses = () => {
+    navigate('/courses');
+  };
+
+  if (loading) {
+    return (
+      <div className="spinner-container">
+        <ClipLoader color="#27d887" loading={true} size={50} />
+      </div>
+    );
+  }
+
   return (
     <div className="course-details">
       <div className="details-header">
         <h1>{course.title.toUpperCase()}</h1>
-        <button className="share-btn">Share</button>
       </div>
+
       <div className="course-meta">
-        <p className="class-box">Class : 7</p>
+        <p className="class-box">Class: {localStorage.getItem('class')}</p>
         <p className="subject-box">{course.subject}</p>
+        {/* <button className="share-btn">Share</button> */}
       </div>
-      <div className="subtitle">Sub-Title</div>
+
+      <div className="subtitle">Description</div>
       <div className="course-content">
         <div className="description">
+          <img src={imageUrl} alt={course.subject} className="course-image" />
           <p>{course.description || 'No description available.'}</p>
         </div>
-        <div className="image-container">
-          <img src={imageUrl} alt={course.subject} className="course-image" />
-        </div>
       </div>
+
       <div className="buttons">
-        <button className="enroll-btn" onClick={handleEnrollNow}>Enroll Now</button>
-        <button className="all-courses-btn">All Courses</button>
+        <button className="all-courses-btn" onClick={handleAllCourses}>See All Courses</button>
+        <button className="enroll-btn" onClick={handleEnrollNow}>Start Course</button>
       </div>
     </div>
   );

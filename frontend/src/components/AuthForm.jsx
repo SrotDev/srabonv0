@@ -18,52 +18,53 @@ const AuthForm = () => {
   };
 
   const handleContinueClick = async () => {
-    const apiUrl = isLogin
-      ? "/api/login/"
-      : "/api/register/";
+  const apiUrl = isLogin
+    ? "https://srabonbackend3.onrender.com/api/login/"
+    : "https://srabonbackend3.onrender.com/api/register/";
 
-    const payload = isLogin
-      ? {
-          username: form.username,
-          password: form.password,
-        }
-      : {
-          username: form.username,
-          password: form.password,
-          email: form.email,
-        };
-
-    try {
-      const res = await fetch(apiUrl, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(payload),
-      });
-
-      if (!res.ok) {
-        const errorData = await res.json();
-        throw new Error(errorData.detail || "Something went wrong.");
+  const payload = isLogin
+    ? {
+        username: form.username,
+        password: form.password,
       }
+    : {
+        username: form.username,
+        password: form.password,
+        email: form.email,
+      };
 
-      const data = await res.json();
+  try {
+    const res = await fetch(apiUrl, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(payload),
+    });
 
-      // ✅ Save token in localStorage
+    const data = await res.json();
+
+    if (!res.ok) {
+      const errorMessage =
+        data.detail ||
+        Object.values(data).flat().join(" ") ||
+        "Something went wrong.";
+      throw new Error(errorMessage);
+    }
+
+    // ✅ Save token if available
     if (data.token) {
       localStorage.setItem("token", data.token);
       console.log(data.token);
     }
 
-      toast.success(`${isLogin ? "Login" : "Signup"} successful`);
-      if (isLogin) {
-        navigate("/functionalities");
-      } else {
-        navigate("/journey");
-      }
-    } catch (err) {
-      toast.error(`❌ ${err.message}`);
-      console.error(`❌ ${isLogin ? "Login" : "Signup"} Failed:`, err);
-    }
-  };
+    toast.success(`${isLogin ? "Login" : "Signup"} successful`);
+    navigate(isLogin ? "/functionalities" : "/journey");
+    
+  } catch (err) {
+    toast.error(`❌ ${err.message}`);
+    console.error(`❌ ${isLogin ? "Login" : "Signup"} Failed:`, err);
+  }
+};
+
 
   return (
     <div className="auth-form-wrapper">

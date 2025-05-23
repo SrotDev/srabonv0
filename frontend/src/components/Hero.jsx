@@ -11,7 +11,7 @@ const Hero = () => {
           <p>An inclusive, gamified learning web app for secondary schoolers that personalizes science education through storytelling, quizzes, and AI-generated courses with multilingual and accessibility support.</p>
           <div className="hero__buttons">
             <NavLink to="/auth" > <button className="btn btn--primary">Get Started</button> </NavLink>
-            <button className="btn btn--secondary">Learn More</button>
+            <NavLink to="https://www.facebook.com/srot.dev" target='_blank'><button className="btn btn--secondary">Learn More</button> </NavLink>
           </div>
         </div>
         <div className="hero__image">

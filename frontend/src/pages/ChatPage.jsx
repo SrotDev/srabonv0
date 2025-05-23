@@ -1,89 +1,110 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { marked } from 'marked';
 
 const ChatPage = () => {
   const navigate = useNavigate();
-  const [userMessage, setUserMessage] = useState(''); // User's input message
-  const [chatHistory, setChatHistory] = useState([]); // Store chat history
-  const [isSending, setIsSending] = useState(false); // To control button state
-  const [sliderPosition, setSliderPosition] = useState(0); // To track slider state
+  const [userMessage, setUserMessage] = useState('');
+  const [chatHistory, setChatHistory] = useState([]);
+  const [isSending, setIsSending] = useState(false);
+  const [aiTyping, setAiTyping] = useState(false);
 
-  // Handler for typing in the message
+  const isFirstMessage = useRef(true);
+  const chatEndRef = useRef(null);
+
   const handleMessageChange = (e) => {
     setUserMessage(e.target.value);
   };
 
-  // Sending message to backend
   const handleSendMessage = async () => {
-    if (!userMessage.trim()) return; // Prevent sending empty message
+    if (!userMessage.trim() || isSending) return;
 
-    setIsSending(true); // Disable button while waiting for AI response
     const newMessage = { from: 'user', text: userMessage };
+    setChatHistory((prev) => [...prev, newMessage]);
+    setUserMessage('');
+    setIsSending(true);
+    setAiTyping(true);
 
-    // Add the user's message to chat history
-    setChatHistory((prevChatHistory) => [...prevChatHistory, newMessage]);
-
-    // Send the message to the backend
     try {
-      const response = await fetch("/api/api/chat", {
+      const response = await fetch("https://srabonbackend3.onrender.com/api/chats/", {
         method: 'POST',
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ message: userMessage }),
+        headers: {
+          "Content-Type": "application/json",
+          "Authorization": `Bearer ${localStorage.getItem('token')}`,
+        },
+        body: JSON.stringify({
+          message: newMessage.text,
+          limit: isFirstMessage.current ? "false" : "true"
+        }),
       });
 
       const data = await response.json();
-
-      // Add AI's response to chat history
-      const aiMessage = { from: 'ai', text: data.response };
-      setChatHistory((prevChatHistory) => [...prevChatHistory, aiMessage]);
-      setIsSending(false); // Enable button after receiving the response
+      const aiMessage = { from: 'ai', text: data.message };
+      setChatHistory((prev) => [...prev, aiMessage]);
+      isFirstMessage.current = false;
     } catch (error) {
       console.error('Error while sending message:', error);
+    } finally {
+      setAiTyping(false);
       setIsSending(false);
     }
-
-    setUserMessage(''); // Clear input after sending
   };
 
-  // Clear chat history when leaving the page
   useEffect(() => {
-    return () => {
-      setChatHistory([]); // Clear history on unmount
+    const name = localStorage.getItem("name") || "there";
+    const welcomeMessage = {
+      from: 'ai',
+      text: `Hi ${name}! I'm your friend আভা. I'm here to support you with your studies, clarify doubts, or just have a chat. Ask me anything to get started! 🚀`
     };
+    setChatHistory([welcomeMessage]);
   }, []);
+
+  useEffect(() => {
+    if (chatEndRef.current) {
+      chatEndRef.current.scrollIntoView({ behavior: 'smooth' });
+    }
+  }, [chatHistory]);
 
   return (
     <div className="chat-page">
-      <div className="chat-header">
-        <button onClick={() => navigate('/')} className="back-button">Back</button>
-        <h2>Chat with AI</h2>
-        <button className="slider-button" onClick={() => setSliderPosition(sliderPosition === 0 ? 1 : 0)}>
-          {sliderPosition === 0 ? 'Show History' : 'Hide History'}
-        </button>
-      </div>
-      
-      <div className={`chat-history ${sliderPosition === 0 ? 'hidden' : ''}`}>
-        {chatHistory.map((msg, index) => (
-          <div key={index} className={`chat-message ${msg.from}`}>
-            <p>{msg.text}</p>
-          </div>
-        ))}
-      </div>
+      <div className="chat-container">
+        <div className="chat-header">
+          <button onClick={() => navigate('/functionalities')} className="back-button">← Back</button>
+          <h2>Chat with আভা.AI</h2>
+        </div>
 
-      <div className="chat-input">
-        <textarea
-          placeholder="Type a new message here"
-          value={userMessage}
-          onChange={handleMessageChange}
-          disabled={isSending}
-        />
-        <button
-          onClick={handleSendMessage}
-          className="send-button"
-          disabled={isSending || !userMessage.trim()}
-        >
-          ➡️
-        </button>
+        <div className="chat-history">
+          {chatHistory.map((msg, index) => (
+            <div key={index} className={`chat-message ${msg.from}`}>
+              <div
+                className="markdown-message"
+                dangerouslySetInnerHTML={{ __html: marked(msg.text) }}
+              />
+            </div>
+          ))}
+          {aiTyping && (
+            <div className="chat-message ai typing">
+              <div className="markdown-message">AI is typing...</div>
+            </div>
+          )}
+          <div ref={chatEndRef} />
+        </div>
+
+        <div className="chat-input">
+          <textarea
+            placeholder="Type a new message here"
+            value={userMessage}
+            onChange={handleMessageChange}
+            disabled={isSending}
+          />
+          <button
+            onClick={handleSendMessage}
+            className="send-button"
+            disabled={isSending || !userMessage.trim()}
+          >
+            <span className="send-icon">➤</span>
+          </button>
+        </div>
       </div>
     </div>
   );

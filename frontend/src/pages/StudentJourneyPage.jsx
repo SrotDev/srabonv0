@@ -5,7 +5,7 @@ import StepSubjects from "../components/survey/StepSubjects";
 import StepLoading from "../components/survey/StepLoading";
 import SurveyProgress from "../components/survey/SurveyProgress";
 import { useNavigate } from "react-router-dom";
-const token = localStorage.getItem("token");
+
 
 const StudentJourneyPage = () => {
   const [step, setStep] = useState(0);
@@ -18,70 +18,77 @@ const StudentJourneyPage = () => {
 
   useEffect(() => {
   if (step === 3) {
-    // Final step: POST data
-    const timer = setTimeout(() => {
-      fetch("/api/api/studentinfo/", {
-        method: "POST",
-        headers: { "Content-Type": "application/json", "Authorization": `Bearer ${token}` },
-        body: JSON.stringify({
-          name,
-          class: studentClass,
-          // subjects,
-        }),
-      })
-        .then((res) => res.json())
-        .then(() => {
-          // Store data in localStorage
-          localStorage.setItem('name', name);
-          localStorage.setItem('class', studentClass);
-          localStorage.setItem('subjects', JSON.stringify(subjects)); // Store array as string
-          
-          // Iterate over the subjects and post each course data
-          const subjectTitles = {
-            "Physics": ["Physics - Fundamentals", "Physics - Advanced Concepts"],
-            "Chemistry": ["Intro to Chemistry", "Advanced Chemistry Techniques"],
-            "Math": ["Mathematics - Basics", "Advanced Calculus"],
-            "History": ["World History - Overview", "Modern History"],
-            "Economics": ["Microeconomics", "Macroeconomics Principles"],
-            "Biology": ["Intro to Biology", "Genetics and Evolution"],
-            "Agriculture": ["Agriculture 101", "Sustainable Farming Techniques"],
-            "English": ["English Literature", "Advanced English Grammar"]
-          };
-
-          // POST a new course for each subject
-          subjects.forEach((subject) => {
-            const courseTitles = subjectTitles[subject];
-            courseTitles.forEach((title) => {
-              fetch("/api/api/addcourses", {
-                method: "POST",
-                headers: { "Content-Type": "application/json", "Authorization": `Bearer ${token}` },
-                body: JSON.stringify({
-                  subject,
-                  title,
-                }),
-              })
-                .then((res) => res.json())
-                .then(() => {
-                  console.log(`Course ${title} for ${subject} created successfully.`);
-                })
-                .catch((err) => {
-                  console.error(`Failed to create course ${title} for ${subject}:`, err);
-                });
-            });
-          });
-
-          // Redirect after posting all courses
-          navigate("/functionalities");
-        })
-        .catch((err) => {
-          console.error("❌ Survey submission failed", err);
-          navigate("/functionalities");
+    const timer = setTimeout(async () => {
+      try {
+        // 1. Submit student info
+        const res = await fetch("https://srabonbackend3.onrender.com/api/studentinfo/", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${localStorage.getItem("token")}`,
+          },
+          body: JSON.stringify({
+            name,
+            class: studentClass,
+          }),
         });
+
+        if (!res.ok) throw new Error("Failed to submit student info");
+
+        // 2. Store data locally
+        localStorage.setItem("name", name);
+        localStorage.setItem("class", studentClass);
+        localStorage.setItem("subjects", JSON.stringify(subjects));
+
+        // 3. Define subject → courses map
+        const subjectTitles = {
+          Physics: ["Physics - Fundamentals", "Physics - Advanced Concepts"],
+          Chemistry: ["Intro to Chemistry", "Advanced Chemistry Techniques"],
+          Math: ["Mathematics - Basics", "Advanced Calculus"],
+          History: ["World History - Overview", "Modern History"],
+          Economics: ["Microeconomics", "Macroeconomics Principles"],
+          Biology: ["Intro to Biology", "Genetics and Evolution"],
+          Agriculture: ["Agriculture 101", "Sustainable Farming Techniques"],
+          English: ["English Literature", "Advanced English Grammar"],
+        };
+
+        // 4. Submit courses one by one
+        for (const subject of subjects) {
+          const courseTitles = subjectTitles[subject] || [];
+          for (const title of courseTitles) {
+            const courseRes = await fetch("https://srabonbackend3.onrender.com/api/addcourses/", {
+              method: "POST",
+              headers: {
+                "Content-Type": "application/json",
+                Authorization: `Bearer ${localStorage.getItem("token")}`,
+              },
+              body: JSON.stringify({
+                subject,
+                title,
+              }),
+            });
+
+            if (!courseRes.ok) {
+              const error = await courseRes.text();
+              throw new Error(`❌ Failed to add course: ${title} — ${error}`);
+            }
+
+            console.log(`✅ Course "${title}" for ${subject} added.`);
+          }
+        }
+
+        // 5. Navigate after all done
+        navigate("/courses");
+      } catch (err) {
+        console.error("❌ Error during course setup:", err);
+        navigate("/functionalities"); // You may keep user here or redirect to an error page
+      }
     }, 2000);
 
     return () => clearTimeout(timer);
   }
 }, [step]);
+
 
 
 

@@ -1,7 +1,17 @@
-// footer {
-//     text-align: center;
-//     // padding: $spacing-unit;
-//     background-color: #222;
-//     color: #fff;
-// }
-  
+.site-footer {
+  text-align: center;
+  font-size: 14px;
+  color: #666;
+  padding: 20px 0;
+  background: #f0f4f8;
+
+  a {
+    color: #138d75;
+    text-decoration: none;
+    font-weight: 500;
+
+    &:hover {
+      text-decoration: underline;
+    }
+  }
+}

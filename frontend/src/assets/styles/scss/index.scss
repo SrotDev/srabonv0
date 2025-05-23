@@ -1,11 +1,5 @@
-// load your custom config files
-@use 'config/functions';
-@use 'config/mixins';
-@use 'config/variables';
-
 // load Bootstrap SCSS
 @use "../../../../node_modules/bootstrap/scss/bootstrap";
-
 
 
 // Load your global styles
@@ -17,17 +11,14 @@
 // Load layout styles
 @use 'layout/mainLayout';
 @use 'layout/navbar';
-@use 'layout/header';
 @use 'layout/footer';
-@use 'layout/sidebar';
 
 
 // Load component styles
 @use 'components/hero';
-@use 'components/button';
-@use 'components/card';
 @use 'components/authForm';
 @use 'components/courseCard';
+@use 'components/spinner';
 
 
 // pages
@@ -46,5 +37,5 @@
 
 
 // Load responsive styles
-@use 'responsive/mobile';
 @use 'responsive/tablet';
+@use 'responsive/mobile';

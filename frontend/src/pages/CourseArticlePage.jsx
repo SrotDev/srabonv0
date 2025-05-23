@@ -31,7 +31,7 @@ const CourseArticlePage = () => {
       <div className="article-header">
         <h1>{course.title}</h1>
         <div className="class-meta">
-          <span className="class-box">Class: 7</span>
+          <span className="class-box">Class: {localStorage.getItem('class')}</span>
           <span className="subject-box">{course.subject}</span>
         </div>
       </div>

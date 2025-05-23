@@ -11,7 +11,7 @@ const CreateCourseCard = () => {
 
   return (
     <div className="create-course-card">
-      <h3>📥 Create Your Own Course</h3>
+      <h3>♥️ Create Your Own Course</h3>
       <p>Choose topics you love and we’ll build a course just for you.</p>
       <button className="start-btn" onClick={handleCreateCourse}>
         Start Now

@@ -32,7 +32,7 @@ const App = () => {
         <Route path="/courses" element={<CoursesPage />} />
         <Route path="/explore" element={<ExplorePage />} />
         <Route path="/create-course" element={<CreateCoursePage />} />
-        <Route path="/chat" element={<ChatPage />} />
+        <Route path="/chats" element={<ChatPage />} />
         
         <Route
           path="/courses/:name"
@@ -44,7 +44,7 @@ const App = () => {
         />
         <Route 
           path="/flashcards/:name" 
-          element={<FlashcardsPage />} 
+          element={<FlashcardsPage course={course} />} 
         />
 
         <Route 

@@ -1,93 +1,85 @@
 import React, { useState } from 'react';
-import { useNavigate, useLocation, useParams } from 'react-router-dom';
+import { useLocation, useNavigate, useParams } from 'react-router-dom';
+import { toast } from 'react-toastify';
 
 const QuizPage = () => {
   const { name } = useParams();
   const location = useLocation();
-  const course = location.state?.course; // Receive the course data via props
-  const [selectedAnswers, setSelectedAnswers] = useState(new Array(6).fill(null)); // Track selected answers
-  const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0); // Current question index
+  const course = location.state?.course;
   const navigate = useNavigate();
+  const [selectedAnswers, setSelectedAnswers] = useState(new Array(6).fill(null));
 
   if (!course) {
     return <div className="loading">Loading quiz...</div>;
   }
 
-  // Handle the selection of an answer
-  const handleAnswerSelection = (answerIndex) => {
+  const handleAnswerChange = (questionIndex, answerIndex) => {
     const updatedAnswers = [...selectedAnswers];
-    updatedAnswers[currentQuestionIndex] = answerIndex;
+    updatedAnswers[questionIndex] = answerIndex;
     setSelectedAnswers(updatedAnswers);
   };
 
-  // Handle moving to the next question
-  const handleNextQuestion = () => {
-    if (currentQuestionIndex < 5) {
-      setCurrentQuestionIndex(currentQuestionIndex + 1);
-    }
-  };
+  const handleSubmit = (e) => {
+  e.preventDefault();
+  const total = course.questions.length;
+  let score = 0;
 
-  // Handle previous question navigation
-  const handlePreviousQuestion = () => {
-    if (currentQuestionIndex > 0) {
-      setCurrentQuestionIndex(currentQuestionIndex - 1);
-    }
-  };
+  selectedAnswers.forEach((answerIndex, index) => {
+    if (answerIndex !== null) {
+      const selectedValue = course.questions[index][['option1', 'option2', 'option3', 'option4'][answerIndex]];
+      const correctAnswer = course.questions[index].ans;
 
-  // Handle quiz submission and result
-  const handleQuizSubmit = () => {
-    // Calculate the score based on the selected answers
-    const score = selectedAnswers.reduce((score, answer, index) => {
-      if (answer !== null && answer === course.questions[index].ans) {
+      if (selectedValue.trim().toLowerCase() === correctAnswer.trim().toLowerCase()) {
         score += 1;
       }
-      return score;
-    }, 0);
 
-    alert(`You scored ${score}/6`);
-    navigate('/');
-  };
+      console.log({
+        answerIndex,
+        selectedValue,
+        correctAnswer,
+        matched: selectedValue.trim().toLowerCase() === correctAnswer.trim().toLowerCase()
+      });
+    }
+  });
+
+  toast.success(`You scored ${score}/${total}!`);
+  navigate('/courses');
+};
+
+
 
   return (
-    <div className="quiz-page">
-      <div className="quiz-header">
-        <h1>{course.title}</h1>
+    <div className="quiz-form-page">
+      <div className="quiz-form-header">
+        <h1>{course.title} - Quiz</h1>
         <div className="class-meta">
-          <span className="class-box">Class: 7</span>
+          <span className="class-box">Class: {localStorage.getItem('class')}</span>
           <span className="subject-box">{course.subject}</span>
         </div>
       </div>
 
-      <div className="quiz-content">
-        <h2>Question {currentQuestionIndex + 1}</h2>
-        <p>{course.questions[currentQuestionIndex].question}</p>
-        <div className="options">
-          {['option1', 'option2', 'option3', 'option4'].map((option, index) => (
-            <button
-              key={index}
-              className={`option-btn ${selectedAnswers[currentQuestionIndex] === index ? 'selected' : ''}`}
-              onClick={() => handleAnswerSelection(index)}
-            >
-              {course.questions[currentQuestionIndex][option]}
-            </button>
-          ))}
-        </div>
-      </div>
-
-      <div className="quiz-navigation">
-        <button className="prev-btn" onClick={handlePreviousQuestion} disabled={currentQuestionIndex === 0}>
-          Previous
-        </button>
-        {currentQuestionIndex < 5 ? (
-          <button className="next-btn" onClick={handleNextQuestion}>
-            Next
-          </button>
-        ) : (
-          <button className="submit-btn" onClick={handleQuizSubmit}>
-            End Quiz
-          </button>
-        )}
-      </div>
+      <form className="quiz-form" onSubmit={handleSubmit}>
+        {course.questions.map((q, qIndex) => (
+          <div key={qIndex} className="quiz-question">
+            <h3>Q{qIndex + 1}: {q.question}</h3>
+            <div className="options">
+              {['option1', 'option2', 'option3', 'option4'].map((key, index) => (
+                <label key={index} className="option-label">
+                  <input
+                    type="radio"
+                    name={`question-${qIndex}`}
+                    value={index}
+                    checked={selectedAnswers[qIndex] === index}
+                    onChange={() => handleAnswerChange(qIndex, index)}
+                  />
+                  {q[key]}
+                </label>
+              ))}
+            </div>
+          </div>
+        ))}
+        <button type="submit" className="submit-quiz-btn">Submit Quiz</button>
+      </form>
     </div>
   );
 };
